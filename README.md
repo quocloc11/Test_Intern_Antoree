@@ -1,12 +1,17 @@
-# React + Vite
+# B1: Clone dự án về máy
+git clone https://github.com/quocloc11/Test_Intern_Antoree.git
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# B2: Di chuyển vào thư mục dự án
+cd Test_Intern_Antoree
 
-Currently, two official plugins are available:
+# B3: Cài đặt thư viện
+npm install
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+# B4: Chạy ứng dụng ở chế độ phát triển 
+npm run dev     
 
-## Expanding the ESLint configuration
+# Truy cập tại: http://localhost:5173
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+# Build dự án
+npm run build
+
