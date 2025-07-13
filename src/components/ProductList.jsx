@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import {
-  Grid, Box, Typography, Divider, FormControlLabel, Checkbox,
-  TextField, Slider, Button, CircularProgress
+  Grid, Box, Typography, Button, CircularProgress
 } from "@mui/material";
+import { toast } from "react-toastify";
 import ProductCard from "./ProductCard";
 import ProductModal from "./ProductModal";
 import { getSuggestions } from "../apis/suggestions";
 import productsData from "../apis/mock-data";
 import { useAppContext } from "../context/AppContext";
-const ProductList = () => {
+import 'swiper/css';
+import 'swiper/css/navigation';
+const ProductList = ({ searchTerm }) => {
   const [products, setProducts] = useState(productsData);
   const [favorites, setFavorites] = useState([]);
   const [modalProduct, setModalProduct] = useState(null);
@@ -16,30 +18,23 @@ const ProductList = () => {
   const [loadingSuggest, setLoadingSuggest] = useState(false);
   const [errorSuggest, setErrorSuggest] = useState(null);
   const [viewed, setViewed] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(10);
 
-  // Bộ lọc giá
-  const priceOptions = [
-    { label: "Dưới 500K", value: "lt500" },
-    { label: "500K - 1 triệu", value: "500to1m" },
-    { label: "Trên 1 triệu", value: "gt1m" },
-  ];
   const [selectedPrices, setSelectedPrices] = useState([]);
   const [priceRange, setPriceRange] = useState([0, 50000000]);
   const { cartFavorite, setCartFavorite } = useAppContext();
-  const handlePriceChange = (e) => {
-    const { value, checked } = e.target;
-    setSelectedPrices((prev) =>
-      checked ? [...prev, value] : prev.filter((v) => v !== value)
-    );
-  };
+  const { viewHistory, setViewHistory } = useAppContext();
 
-  const handleSliderPriceChange = (event, newValue) => {
-    setPriceRange(newValue);
+  const handleShowMore = () => {
+    setVisibleCount((prev) => prev + 4);
   };
-
   useEffect(() => {
     let filtered = productsData;
-
+    if (searchTerm && searchTerm.trim() !== "") {
+      filtered = filtered.filter(p =>
+        p.name.toLowerCase().includes(searchTerm.trim().toLowerCase())
+      );
+    }
     if (selectedPrices.length > 0) {
       filtered = filtered.filter((p) =>
         selectedPrices.some((key) =>
@@ -55,22 +50,27 @@ const ProductList = () => {
     );
 
     setProducts(filtered);
-  }, [selectedPrices, priceRange]);
+  }, [selectedPrices, priceRange, searchTerm]);
 
 
   const handleToggleFavorite = (id) => {
     if (cartFavorite.includes(id)) {
       setCartFavorite(cartFavorite.filter((f) => f !== id));
+      toast.error("Đã xóa khỏi danh sách yêu thích");
     } else {
       setCartFavorite([...cartFavorite, id]);
+      toast.success("Đã thêm vào danh sách yêu thích");
     }
   };
 
   const handleViewDetail = (product) => {
     setModalProduct(product);
-    if (!viewed.includes(product.id)) {
-      setViewed((prev) => [...prev, product.id]);
-    }
+
+    setViewHistory((prev) => {
+      const exists = prev.find((p) => p.id === product.id);
+      if (exists) return prev;
+      return [product, ...prev.slice(0, 9)];
+    });
   };
 
   const handleGetSuggestions = async () => {
@@ -87,73 +87,179 @@ const ProductList = () => {
   };
 
   return (
-    <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2 }}>
-      {/* Bộ lọc */}
-      <Box sx={{ width: { xs: "100%", md: 280 }, p: 2, border: "1px solid #ccc", borderRadius: 2 }}>
-        <Typography variant="h6">Bộ lọc tìm kiếm</Typography>
-        <Typography variant="subtitle1" fontWeight="bold">Mức giá</Typography>
-        <Divider sx={{ mb: 1 }} />
-        {priceOptions.map((opt) => (
-          <FormControlLabel
-            key={opt.value}
-            control={<Checkbox checked={selectedPrices.includes(opt.value)} onChange={handlePriceChange} value={opt.value} />}
-            label={opt.label}
-          />
-        ))}
-        <Typography mt={2}>Hoặc nhập khoảng giá:</Typography>
-        <Box display="flex" gap={1} mb={2}>
-          <TextField size="small" value={priceRange[0].toLocaleString("vi-VN") + "đ"} inputProps={{ readOnly: true }} fullWidth />
-          <TextField size="small" value={priceRange[1].toLocaleString("vi-VN") + "đ"} inputProps={{ readOnly: true }} fullWidth />
-        </Box>
-        <Slider value={priceRange} onChange={handleSliderPriceChange} valueLabelDisplay="auto" min={0} max={50000000} step={100000} />
-      </Box>
-
-      {/* Danh sách sản phẩm */}
+    <Box sx={{ width: "100%" }}>
       <Box sx={{ flexGrow: 1 }}>
-        {/* Nút gợi ý */}
-        <Box display="flex" justifyContent="flex-end" mb={2}>
-          <Button variant="contained" onClick={handleGetSuggestions}>Gợi ý sản phẩm phù hợp</Button>
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          mb={2}
+          mt={2}
+        >
+          <Button
+            onClick={handleGetSuggestions}
+            sx={{
+              backgroundColor: '#ee4d2d',
+              color: '#fff',
+              '&:hover': {
+                backgroundColor: '#d94427',
+              },
+              textTransform: 'none',
+              fontWeight: 'bold',
+              px: 3,
+              py: 1.2,
+              borderRadius: 2,
+            }}
+          >
+            Gợi ý sản phẩm phù hợp
+          </Button>
         </Box>
 
-        {/* Gợi ý */}
-        {loadingSuggest && <CircularProgress />}
-        {errorSuggest && <Typography color="error">{errorSuggest}</Typography>}
+
+        {loadingSuggest && (
+          <Box textAlign="center" my={2}>
+            <CircularProgress />
+          </Box>
+        )}
+
+        {errorSuggest && (
+          <Typography color="error" textAlign="center" mb={2}>
+            {errorSuggest}
+          </Typography>
+        )}
 
         {suggested.length > 0 && (
-          <>
-            <Typography variant="h6" gutterBottom>Sản phẩm gợi ý</Typography>
-            <Grid container spacing={3} mb={2}>
+          <Box
+            sx={{
+              borderRadius: 2,
+              p: 2,
+              mb: 3,
+              backgroundColor: "#f9f9f9",
+              boxShadow: 2,
+            }}
+          >
+            <Typography variant="h6" gutterBottom sx={{ color: '#ee4d2d', fontWeight: "bold" }}>
+              Sản phẩm gợi ý
+            </Typography>
+
+            <Box
+              sx={{
+                display: "grid",
+                gap: 2,
+                gridTemplateColumns: {
+                  xs: "repeat(2, 1fr)",
+                  sm: "repeat(3, 1fr)",
+                  md: "repeat(5, 1fr)",
+                },
+              }}
+            >
               {suggested.map((product) => (
-                <Grid item xs={12} sm={6} md={3} key={product.id}>
+                <Box
+                  key={product.id}
+                  sx={{
+                    borderRadius: 2,
+                    overflow: "hidden",
+                    backgroundColor: "#fff",
+                    boxShadow: 1,
+                    transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                    ":hover": {
+                      transform: "translateY(-4px)",
+                      boxShadow: 4,
+                    },
+                    display: "flex",
+                    flexDirection: "column",
+                    height: "100%",
+                  }}
+                >
                   <ProductCard
                     product={product}
                     onViewDetail={handleViewDetail}
                     onToggleFavorite={handleToggleFavorite}
                     isFavorite={cartFavorite.includes(product.id)}
-
                   />
-                </Grid>
+                </Box>
               ))}
-            </Grid>
-          </>
+            </Box>
+          </Box>
         )}
 
-        {/* Danh sách chính */}
-        <Grid container spacing={3}>
-          {products.map((product) => (
-            <Grid item xs={12} sm={6} md={3} key={product.id}>
-              <ProductCard
-                product={product}
-                onViewDetail={handleViewDetail}
-                onToggleFavorite={handleToggleFavorite}
-                isFavorite={favorites.includes(product.id)}
-              />
-            </Grid>
-          ))}
-        </Grid>
+        <Typography
+          variant="h6"
+          gutterBottom
+          sx={{ fontWeight: "bold", color: "#ee4d2d", mt: 4 }}
+        >
+          Tất Cả Sản Phẩm
+        </Typography>
+
+        <Box sx={{ width: "100%", mx: "auto" }}>
+          <Box
+            sx={{
+              cursor: 'pointer',
+              display: "grid",
+              gap: 2,
+              gridTemplateColumns: {
+                xs: "repeat(2, 1fr)",
+                sm: "repeat(3, 1fr)",
+                md: "repeat(5, 1fr)",
+              },
+            }}
+          >
+            {products.slice(0, visibleCount).map((product) => (
+              <Box
+                key={product.id}
+                sx={{
+                  width: "100%",
+                  height: "100%",
+                  borderRadius: 2,
+                  overflow: "hidden",
+                  boxShadow: 2,
+                  transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                  ":hover": {
+                    transform: "translateY(-4px)",
+                    boxShadow: 4,
+                  },
+                  backgroundColor: "#fff",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <ProductCard
+                  product={product}
+                  onViewDetail={handleViewDetail}
+                  onToggleFavorite={handleToggleFavorite}
+                  isFavorite={cartFavorite.includes(product.id)}
+                />
+              </Box>
+            ))}
+          </Box>
+
+          {visibleCount < products.length && (
+            <Box textAlign="center" mt={3}>
+              <Button
+                onClick={handleShowMore}
+                sx={{
+                  backgroundColor: '#ee4d2d',
+                  color: '#fff',
+                  '&:hover': {
+                    backgroundColor: '#d94427',
+                  },
+                  textTransform: 'none',
+                  fontWeight: 'bold',
+                  px: 3,
+                  py: 1.2,
+                  borderRadius: 2,
+                }}
+              >
+                Xem thêm
+              </Button>
+            </Box>
+
+          )}
+        </Box>
+
+
       </Box>
 
-      {/* Modal chi tiết */}
       <ProductModal
         product={modalProduct}
         open={!!modalProduct}

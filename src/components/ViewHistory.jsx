@@ -1,168 +1,122 @@
-
 import 'swiper/css';
 import 'swiper/css/navigation';
-import 'swiper/css/pagination';
-import { Navigation, Pagination } from 'swiper/modules';
-import { useNavigate } from 'react-router-dom';
-//import { useSelector } from 'react-redux';
-// import { addViewProductAPI, viewProductAPI } from '../../apis';
-import { useEffect, useState } from 'react';
-//import slugify from 'slugify';
+import { Navigation } from 'swiper/modules';
+import { Swiper, SwiperSlide } from 'swiper/react';
 import { Box, Typography } from "@mui/material";
-import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
-import "swiper/css/navigation";
+import { useAppContext } from '../context/AppContext';
 
-export default function ViewHistory() {
-  const [products, setProducts] = useState(null);
-  const navigate = useNavigate();
+const ViewHistory = () => {
+  const { viewHistory } = useAppContext();
 
-  // const currentUser = useSelector((state) => state.user.currentUser);
+  if (!Array.isArray(viewHistory) || viewHistory.length === 0) return null;
 
-  // useEffect(() => {
-  //   const fetchProducts = async () => {
-  //     try {
-  //       //const resoponse=dispatch(getProductAPI())
-  //       const response = await viewProductAPI();
-  //       setProducts(response.data);
-  //     } catch (error) {
-  //       console.error("Error fetching products:", error);
-  //     }
-  //   };
-
-  //   fetchProducts();
-  // }, []);
   return (
-
-    <Box sx={{
-      maxWidth: '1200px',
-      mx: 'auto',
-      px: 2,
-      py: 4,
-      pb: 4,
-      border: '1px solid #e0e0e0',
-      borderRadius: '12px',
-    }}
+    <Box
+      sx={{
+        maxWidth: '1200px',
+        mx: 'auto',
+        px: 2,
+        py: 4,
+        border: '1px solid #e0e0e0',
+        borderRadius: '16px',
+        mt: 5,
+        bgcolor: '#fff',
+        boxShadow: 2,
+      }}
     >
-
       <Typography
         variant="h6"
         fontWeight="bold"
         gutterBottom
         sx={{
-          mb: 2,
-          fontSize: '2rem',
+          mb: 3,
+          fontSize: '1.75rem',
           lineHeight: 1.4,
           letterSpacing: '0.5px',
-          textTransform: 'uppercase'
+          textTransform: 'uppercase',
+          color: '#ee4d2d',
         }}
       >
         Sản phẩm đã xem
       </Typography>
+
       <Swiper
         modules={[Navigation]}
-        spaceBetween={20}
-        slidesPerView={5}
+        spaceBetween={16}
+        slidesPerView={4}
         navigation
-        pagination={{ clickable: true }}
+        breakpoints={{
+          0: { slidesPerView: 1 },
+          600: { slidesPerView: 2 },
+          900: { slidesPerView: 3 },
+          1200: { slidesPerView: 4 },
+        }}
       >
-        {Array.isArray(products) && products.length > 0 ? (
-          products.map((item, index) => {
-            const product = item?.product;
-            if (!product) return null;
+        {viewHistory.map((product, index) => (
+          <SwiperSlide key={index}>
+            <Box
+              sx={{
+                backgroundColor: '#f9f9f9',
+                p: 2,
+                borderRadius: 3,
+                border: '1px solid #e0e0e0',
+                cursor: 'pointer',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: 3,
+                },
+              }}
+            >
+              <img
+                src={product.image || 'https://via.placeholder.com/150'}
+                alt={product.name}
+                loading="lazy"
+                style={{
+                  width: '100%',
+                  height: '160px',
+                  objectFit: 'contain',
+                  borderRadius: 8,
+                  backgroundColor: '#fff',
+                }}
+              />
 
-            // Tính số tiền giảm
-            const discountAmount = product?.price - product?.discountPrice;
-
-            return (
-              <SwiperSlide key={index}>
-                <Box
+              <Box mt={2}>
+                <Typography
+                  variant="subtitle2"
+                  fontWeight="600"
                   sx={{
-                    backgroundColor: 'white',
-                    p: 2,
-                    borderRadius: 3,
-                    border: '1px solid #e0e0e0',
-                    cursor: 'pointer',
-                    transition: 'transform 0.3s ease-in-out',
-                    '&:hover': {
-                      transform: 'scale(1.05)',
-                      opacity: 0.9,
-                    },
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
                   }}
-                  onClick={() => {
-                    const priceAfterDiscount =
-                      product.discountPrice && product.discountPrice < product.price
-                        ? product.price - product.discountPrice
-                        : product.price;
-
-                    // navigate(`/${slugify(product?.category)}/${slugify(product?.name)}`, {
-                    //   state: {
-                    //     ...product,
-                    //     priceAfterDiscount,
-                    //   },
-                    // });
-                  }}
-
+                  title={product.name}
                 >
-                  <img
-                    src={product?.images?.length > 0 ? product.images : 'https://via.placeholder.com/150'}
-                    alt={product?.name || 'Sản phẩm'}
-                    loading="lazy"
-                    style={{
-                      width: '100%',
-                      height: '160px',
-                      objectFit: 'contain',
-                    }}
-                  />
+                  {product.name}
+                </Typography>
 
-                  <Box mt={2}>
-                    <Typography variant="subtitle1" fontWeight="600">
-                      {product?.name || 'Không tên'}
-                    </Typography>
-
-
-
-                    {product?.discountPrice && product?.discountPrice < product?.price ? (
-                      <>
-
-                        {/* Giá gốc */}
-                        <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'gray' }}>
-                          {Number(product.price).toLocaleString("vi-VN")} đ
-                        </Typography>
-                        {/* Giá đã giảm */}
-                        <Typography variant="h6" color="error">
-                          {Number(discountAmount).toLocaleString("vi-VN")} đ
-                        </Typography>
-
-                        {/* Số tiền giảm */}
-                        <Typography variant="body2" color="success.main">
-                          Giảm  {Number(product.discountPrice).toLocaleString("vi-VN")} đ
-
-                        </Typography>
-                      </>
-                    ) : (
-                      // Nếu không giảm giá, hiển thị giá gốc
-                      <Typography variant="h6" color="black">
-                        {Number(product.price).toLocaleString("vi-VN")} đ
-                      </Typography>
-                    )}
-
-                    {product?.discountAmount && (
-                      <Typography variant="body2" color="success.main">
-                        {product.discountAmount}
-                      </Typography>
-                    )}
-                  </Box>
-                </Box>
-              </SwiperSlide>
-            );
-          })
-        ) : (
-          <Typography>Loading...</Typography>
-        )}
-
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: '#ee4d2d',
+                    fontWeight: 'bold',
+                    mt: 0.5,
+                  }}
+                >
+                  {Number(product.price).toLocaleString("vi-VN")} đ
+                </Typography>
+              </Box>
+            </Box>
+          </SwiperSlide>
+        ))}
       </Swiper>
     </Box>
 
   );
-}
+};
+
+export default ViewHistory;

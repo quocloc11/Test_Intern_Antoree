@@ -1,8 +1,7 @@
 import React from "react";
-import { Container, Grid, Card, CardMedia, Typography, Button, Box } from "@mui/material";
+import { Card, CardMedia, Box } from "@mui/material";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { useNavigate } from "react-router-dom";
-import { Navigation, Pagination, Autoplay } from "swiper/modules";
+import { Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -33,8 +32,8 @@ const Banner = () => {
         {/* Swiper bên trái */}
         <Box
           sx={{
-            flex: '2 1 65%', // chiếm khoảng 65% chiều ngang, có thể điều chỉnh
-            minWidth: 300,   // tránh quá nhỏ
+            flex: '2 1 65%',
+            minWidth: 300,
           }}
         >
           <Swiper
@@ -69,14 +68,19 @@ const Banner = () => {
         {/* Avatar bên phải */}
         <Box
           sx={{
-            flex: '1 1 30%', // chiếm khoảng 30% chiều ngang
-            display: 'flex',
+            flex: '1 1 30%',
+            display: {
+              xs: 'none',
+              sm: 'none',
+              md: 'flex',
+            },
             flexDirection: 'column',
             gap: 2,
-            minWidth: 200,  // tránh quá nhỏ
+            minWidth: 200,
             justifyContent: 'center',
           }}
         >
+
           {avatar.map((item, index) => (
             <Card key={index}>
               <CardMedia
@@ -99,6 +103,5 @@ const Banner = () => {
 
   );
 };
-
 
 export default Banner;

@@ -1,57 +1,37 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext"
 import {
   Box,
   Container,
-  Grid,
   Typography,
-  Button,
-  InputBase,
   IconButton,
-  Paper,
-  Divider, MenuItem, Menu,
   Badge
 } from '@mui/material';
 import { TextField, InputAdornment } from '@mui/material';
-
 import CloseIcon from '@mui/icons-material/Close';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import FacebookIcon from '@mui/icons-material/Facebook';
-import TwitterIcon from '@mui/icons-material/Twitter';
-import YouTubeIcon from '@mui/icons-material/YouTube';
-import InstagramIcon from '@mui/icons-material/Instagram';
 import SearchIcon from '@mui/icons-material/Search';
 
-const menuItems = ['Home', 'Shop', 'Shop Detail', 'Pages', 'Contact'];
-
-const Header = () => {
+const Header = ({ searchTerm, setSearchTerm }) => {
   const { cartFavorite } = useAppContext();
-  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
-
+  const [inputValue, setInputValue] = useState(searchTerm || "");
   const handleSearch = (e) => {
     e.preventDefault();
-    if (searchTerm.trim()) {
-      navigate('/detail', { state: { keyword: searchTerm } });
+    const trimmed = inputValue.trim();
+    if (trimmed) {
+      navigate(`/search?keyword=${encodeURIComponent(trimmed)}`);
     }
   };
+  const handleInputChange = (e) => {
+    setInputValue(e.target.value);
+  };
 
-  const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
-  //const [favoriteCount, setFavoriteCount] = React.useState(0);
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
   return (
     <>
-      <Box component="header" sx={{ bgcolor: '#6f42c1', py: 1, color: 'white' }}>
+      <Box component="header" sx={{ bgcolor: '#ee4d2d', py: 1, color: 'white' }}>
         <Container
           maxWidth="lg"
           sx={{
@@ -62,14 +42,12 @@ const Header = () => {
             flexWrap: 'wrap',
           }}
         >
-          {/* Logo */}
           <Link to="/" style={{ textDecoration: 'none', color: 'white' }}>
             <Typography variant="h6" fontWeight="bold">
               Antoree
             </Typography>
           </Link>
 
-          {/* Social icons */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 'auto' }}>
             <Box sx={{ display: 'flex', gap: 1 }}>
 
@@ -106,14 +84,10 @@ const Header = () => {
           </Box>
         </Container>
       </Box>
-
-
       <Container
         maxWidth="lg"
         sx={{ py: 1.5, px: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
       >
-
-        {/* Hàng trên: Search nằm chính giữa */}
         <Box
           sx={{
             display: 'flex',
@@ -135,9 +109,6 @@ const Header = () => {
               }}
             />
           </Box>
-
-
-          {/* 75% */}
           <Box
             sx={{
               flex: 3,
@@ -164,17 +135,22 @@ const Header = () => {
                 variant="outlined"
                 size="small"
                 fullWidth
+                autoComplete="off"
                 placeholder="Tìm kiếm sản phẩm..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={inputValue}
+                onChange={handleInputChange}
                 InputProps={{
                   endAdornment: (
                     <>
                       {searchTerm && (
                         <InputAdornment position="end">
-                          <IconButton onClick={() => setSearchTerm('')}>
+                          <IconButton onClick={() => {
+                            setInputValue('');
+                            setSearchTerm('');
+                          }}>
                             <CloseIcon />
                           </IconButton>
+
                         </InputAdornment>
                       )}
                       <InputAdornment position="end">
@@ -194,13 +170,12 @@ const Header = () => {
                 }}
               />
             </Box>
-
-
-            {/* 2 icon nằm bên phải */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-              <Badge badgeContent={cartFavorite.length} color="primary" showZero>
-                <FavoriteBorderIcon sx={{ cursor: 'pointer', color: 'text.secondary' }} />
-              </Badge>
+              <IconButton onClick={() => navigate('/favorites')}>
+                <Badge badgeContent={cartFavorite.length} color="primary" showZero>
+                  <FavoriteBorderIcon sx={{ cursor: 'pointer', color: 'text.secondary' }} />
+                </Badge>
+              </IconButton>
               <Badge color="primary" showZero>
                 <ShoppingCartIcon sx={{ cursor: 'pointer', color: 'text.secondary' }} />
               </Badge>
