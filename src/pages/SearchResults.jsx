@@ -133,7 +133,7 @@ const SearchResults = () => {
               sx={{ color: "primary.main" }}
             />
           </Box>
-          \
+
           <Box
             sx={{
               flexGrow: 1,
